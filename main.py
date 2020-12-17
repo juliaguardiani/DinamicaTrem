@@ -1,8 +1,14 @@
 import arcade
 import os
+import socket
+import sys
 from functions import *
 from train import *
 import threading
+
+localIP = "127.0.0.1"
+localPort = 20001
+bufferSize = 1024
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -13,6 +19,12 @@ mutex3 = threading.Lock()
 mutex4 = threading.Lock()
 mutex5 = threading.Lock()
 
+# Create a UDP socket
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# Bind the socket to the port
+server_address = (localIP,localPort)
+s.bind(server_address)
+print("Do Ctrl+c to exit the program !!")
 
 class MyGame(arcade.Window):
     def __init__(self, width, height):
@@ -191,39 +203,43 @@ class MyGame(arcade.Window):
             self.train4.yc = 412
             time.sleep(0.02)
 
-    def on_key_press(self, key, modifiers):
-        if key == arcade.key.Q and self.train1.velocity <= 5:
+    def update(self, delta_time):
+        print("entrou no servidor")
+
+        print("####### Server is listening #######")
+        data, address = s.recvfrom(bufferSize)
+        comando = data.decode('utf-8')
+        print("\n 2. Server received: ", comando, "\n")
+
+        if comando == 'Q' and self.train1.velocity <= 5:
             self.train1.velocity = self.train1.velocity + 0.25
-        elif key == arcade.key.A and self.train1.velocity >= 1:
+            print("entrou no if Q")
+        elif comando == 'A' and self.train1.velocity >= 1:
             self.train1.velocity = self.train1.velocity - 0.25
 
-        if key == arcade.key.W and self.train2.velocity <= 5:
+        if comando == 'W' and self.train2.velocity <= 5:
             self.train2.velocity = self.train2.velocity + 0.25
-        elif key == arcade.key.S and self.train2.velocity >= 1:
-            self.train2.velocity = self.train2.velocity - 0.25
+        elif comando == "S" and self.train2.velocity >= 1:
+            elf.train2.velocity = self.train2.velocity - 0.25
 
-        if key == arcade.key.E and self.train3.velocity <= 5:
+        if comando == "E" and self.train3.velocity <= 5:
             self.train3.velocity = self.train3.velocity + 0.25
-        elif key == arcade.key.D and self.train3.velocity >= 1:
+        elif comando == "D" and self.train3.velocity >= 1:
             self.train3.velocity = self.train3.velocity - 0.25
 
-        if key == arcade.key.R and self.train4.velocity <= 5:
+        if comando == "R" and self.train4.velocity <= 5:
             self.train4.velocity = self.train4.velocity + 0.25
-        elif key == arcade.key.F and self.train4.velocity >= 1:
+        elif comando == "F" and self.train4.velocity >= 1:
             self.train4.velocity = self.train4.velocity - 0.25
 
-    def update(self, delta_time):
-        self.velocidade1 = str(self.train1.velocity * 10) + "Km/h"
-        self.velocidade2 = str(self.train2.velocity * 10) + "Km/h"
-        self.velocidade3 = str(self.train3.velocity * 10) + "Km/h"
-        self.velocidade4 = str(self.train4.velocity * 10) + "Km/h"
-
+            #send_data = input("se o servidor desejar mandar alguma msg para o cliente, digite aqui => ")
+            #s.sendto(send_data.encode('utf-8'), address)
+            #print("\n 1. Server sent : ", send_data, "\n")
 
 def main():
     window = MyGame(SCREEN_WIDTH, SCREEN_HEIGHT)
     window.setup()
     arcade.run()
-
 
 # arcade.finish_render()
 
